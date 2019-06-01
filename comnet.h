@@ -16,8 +16,6 @@
 
 #include <sys/time.h>
 
-#include <mysql/mysql.h>
-
 unsigned char my_MAC[6];
 unsigned char my_IP[4];
 unsigned char NETMASK[4];
@@ -53,11 +51,6 @@ unsigned char alameda_MAC_WLAN[6] = {0xa4,0xdb,0x30,0x7b,0xaf,0x77};
 struct timeval start, end;
 long mtime, seconds, useconds;
 
-MYSQL *connection;
-MYSQL_RES *result;
-MYSQL_ROW row;
-char consult[100] = "";
-
 int getData(int sd);
 void ARPframe(unsigned char *trama, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP);
 void frame(unsigned char *trama);
@@ -69,14 +62,5 @@ void stringToIP(char *ip_s);
 char *IPToString(unsigned char *ip);
 void getDestinationIP(int index);
 
-void BD_MySQL_Connect();
-void BD_MySQL_Close();
-void BD_MySQL_Save_Data(unsigned char *frame);
-void BD_MySQL_Show_Data();
-void BD_MySQL_Reset_Data();
-
-int BD_MySQL_Find_IP(char *ip);
-
-void ARPserver(int sd, int index);
 void gratARPreply(unsigned char *frame, unsigned char *s_MAC, unsigned char *d_MAC, unsigned char *d_IP);
 void gratARPrequest(unsigned char *frame, unsigned char *d_MAC, unsigned char *d_IP);
