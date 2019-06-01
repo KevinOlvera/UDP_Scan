@@ -180,16 +180,22 @@ void sendFrame(int sd, int index, unsigned char *frame, int frame_size)
 
 void printFrame(unsigned char *frame, int size)
 {
-	int i;
+    int i = 0;
+    printf(" %.2X\t", 16*i);
 
-	for( i = 0 ; i < size ; i++ )
-	{
-		if( i%16 == 0 )
-			printf("\n");
-		printf("%.2x ", frame[i]);
-	}
-
-	printf("\n");
+    for (int j = 0; j < tam-1; j++)
+    {
+        if (j % 16 == 0 && j != 0)
+        {
+            printf("\n");
+            i++;
+            printf(" %.2X\t", 16*i);
+        }
+        if (j % 8 == 0)
+            printf(" ");
+        printf("%.2X ", frame[j]);
+    }
+    printf("\n");
 }
 
 void printARPinfo(unsigned char *frame, int size)

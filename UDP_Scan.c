@@ -16,6 +16,7 @@ int main(int argc, char const *argv[])
 		perror("Exito al abrir el socket");
 		index = getData(packet_socket);
 		
+        
 		
 	}
 	
