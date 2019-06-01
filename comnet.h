@@ -60,7 +60,6 @@ void printARPinfo(unsigned char *frame, int size);
 void receiveFrame(int sd, unsigned char *frame);
 void stringToIP(char *ip_s);
 char *IPToString(unsigned char *ip);
-void getDestinationIP(int index);
 
 void gratARPreply(unsigned char *frame, unsigned char *s_MAC, unsigned char *d_MAC, unsigned char *d_IP);
 void gratARPrequest(unsigned char *frame, unsigned char *d_MAC, unsigned char *d_IP);

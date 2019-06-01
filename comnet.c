@@ -183,7 +183,7 @@ void printFrame(unsigned char *frame, int size)
     int i = 0;
     printf(" %.2X\t", 16*i);
 
-    for (int j = 0; j < tam-1; j++)
+    for (int j = 0; j < size-1; j++)
     {
         if (j % 16 == 0 && j != 0)
         {
@@ -272,8 +272,6 @@ void receiveFrame(int sd, unsigned char *frame)
 			if( !memcmp(frame+0, my_MAC, 6) && !memcmp(frame+12, ethertype_ARP, 2) && !memcmp(frame+20, epcode_ARP_replay, 2) && !memcmp(frame+28, dest_IP, 4) )
 			{
 				//printFrame(frame, size);
-				printARPinfo(frame, size);
-				BD_MySQL_Save_Data(frame);
 				flag = 1;
 			}
 	
@@ -324,26 +322,6 @@ char *IPToString(unsigned char *ip)
 	}
 
 	return ip_s;
-}
-
-void getDestinationIP(int index)
-{
-    dest_IP[0] = my_IP[0];
-	dest_IP[1] = my_IP[1];
-	dest_IP[2] = my_IP[2];
-
-	char ip[14] = "";
-	char aux[14] = "";
-	
-	for( int i = 0 ; i < 3 ; i++ ){
-		sprintf(aux, "%d.", dest_IP[i]);
-		strcat(ip, aux);
-	}
-
-	sprintf(aux, "%d", index);
-	strcat(ip, aux);
-
-	inet_aton(ip, (struct in_addr *)dest_IP);
 }
 
 void gratARPreply(unsigned char *frame, unsigned char *s_MAC, unsigned char *d_MAC, unsigned char *d_IP)
