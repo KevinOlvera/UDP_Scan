@@ -6,30 +6,30 @@ int getData(int sd)
 	int index, i;
 	char select, interface_name[10];
 
-	printf("Elije la interfaz de red a utilizar\n 1.-enp2s0\n 2.-wlp3s0\n 3.-Salir\n -> ");
+	printf(" Elije la interfaz de red a utilizar\n 1.-enp2s0\n 2.-wlp3s0\n 3.-Salir\n -> ");
 	scanf("%c", &select);
 
 	switch (select)
 	{
-		case '1':
-			strcpy(interface_name, "enp2s0");
-			break;
-		
-		case '2':
-			strcpy(interface_name, "wlp3s0");
-			break;
-	
-		default:
+	case '1':
+		strcpy(interface_name, "enp2s0");
+		break;
+
+	case '2':
+		strcpy(interface_name, "wlp3s0");
+		break;
+
+	default:
 		printf("Error al seleccionar la interfaz de red.\n");
-			exit(1);
-			break;
+		exit(1);
+		break;
 	}
 
 	strcpy(nic.ifr_name, interface_name);
 
 	/* obtener el indice de la interfaz de red */
-	
-	if(ioctl(sd, SIOCGIFINDEX, &nic) == -1)
+
+	if (ioctl(sd, SIOCGIFINDEX, &nic) == -1)
 	{
 		perror("Error al obtener el indice\n");
 		exit(1);
@@ -41,19 +41,19 @@ int getData(int sd)
 
 	/* obtener mi direccion MAC */
 
-	if(ioctl(sd, SIOCGIFHWADDR, &nic ) == -1)
+	if (ioctl(sd, SIOCGIFHWADDR, &nic) == -1)
 	{
 		perror("Error al obtener la MAC\n");
 		exit(1);
 	}
-    else
-    {
-		memcpy(my_MAC, nic.ifr_hwaddr.sa_data+0, 6);
-		printf("Mi direccion MAC es: ");
-		
-		for( i = 0 ; i < 6 ; i++ )
+	else
+	{
+		memcpy(my_MAC, nic.ifr_hwaddr.sa_data + 0, 6);
+		printf(" Mi direccion MAC es: ");
+
+		for (i = 0; i < 6; i++)
 		{
-			if(i == 5)
+			if (i == 5)
 				printf("%.2X\n", my_MAC[i]);
 			else
 				printf("%.2X:", my_MAC[i]);
@@ -62,47 +62,49 @@ int getData(int sd)
 
 	/* obtener mi direccion IP */
 
-	if(ioctl(sd, SIOCGIFADDR, &nic) == -1)
+	if (ioctl(sd, SIOCGIFADDR, &nic) == -1)
 	{
 		perror("Error al obtener la dirección IP\n");
 		exit(1);
 	}
 	else
 	{
-		memcpy(my_IP, nic.ifr_addr.sa_data+2, 4);
-		printf("Mi direccion IP es: ");
-		
-		for( i = 0 ; i < 4 ; i++ ){
-			if( i == 3 )
+		memcpy(my_IP, nic.ifr_addr.sa_data + 2, 4);
+		printf(" Mi direccion IP es: ");
+
+		for (i = 0; i < 4; i++)
+		{
+			if (i == 3)
 				printf("%d\n", my_IP[i]);
-			else 
+			else
 				printf("%d.", my_IP[i]);
 		}
 	}
 
 	/* obtener mi mascara de subred */
 
-	if(ioctl(sd, SIOCGIFNETMASK, &nic) == -1)
+	if (ioctl(sd, SIOCGIFNETMASK, &nic) == -1)
 	{
 		perror("Error al obtener la mascara de subred\n");
 		exit(1);
 	}
 	else
 	{
-		memcpy(NETMASK, nic.ifr_netmask.sa_data+2, 4);
-		printf("Mi mascara de subred es: ");
-		
-		for( i = 0 ; i < 4 ; i++ ){
-			if( i == 3 )
+		memcpy(NETMASK, nic.ifr_netmask.sa_data + 2, 4);
+		printf(" Mi mascara de subred es: ");
+
+		for (i = 0; i < 4; i++)
+		{
+			if (i == 3)
 				printf("%d\n", NETMASK[i]);
-			else 
+			else
 				printf("%d.", NETMASK[i]);
 		}
 	}
 
 	/* obtener la metrica */
 
-	if(ioctl(sd, SIOCGIFMETRIC, &nic) == -1)
+	if (ioctl(sd, SIOCGIFMETRIC, &nic) == -1)
 	{
 		perror("Error al obtener la metrica\n");
 		exit(1);
@@ -110,12 +112,12 @@ int getData(int sd)
 	else
 	{
 		Metric = nic.ifr_metric;
-		printf("Mi metrica es: %d\n", Metric);
+		printf(" Mi metrica es: %d\n", Metric);
 	}
 
 	/* obtener el MTU */
 
-	if(ioctl(sd, SIOCGIFMTU, &nic) == -1)
+	if (ioctl(sd, SIOCGIFMTU, &nic) == -1)
 	{
 		perror("Error al obtener el MTU\n");
 		exit(1);
@@ -123,7 +125,7 @@ int getData(int sd)
 	else
 	{
 		MTU = nic.ifr_mtu;
-		printf("Mi MTU es: %d\n", MTU);
+		printf(" Mi MTU es: %d\n", MTU);
 	}
 
 	printf("\n");
@@ -133,87 +135,87 @@ int getData(int sd)
 
 void ARPframe(unsigned char *trama, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP)
 {
-	memcpy(trama+0, bro_MAC, 6);
-	memcpy(trama+6, s_MAC, 6);
-	memcpy(trama+12, ethertype_ARP, 2);
-	memcpy(trama+14, HW, 2);
-	memcpy(trama+16, PR, 2);
-	memcpy(trama+18, LDH, 1);
-	memcpy(trama+19, LDP, 1);
-	memcpy(trama+20, epcode_ARP_request, 2);
-	memcpy(trama+22, s_MAC, 6);
-	memcpy(trama+28, s_IP, 4);
-	memcpy(trama+32, d_MAC, 6);
-	memcpy(trama+38, d_IP, 4);
+	memcpy(trama + 0, bro_MAC, 6);
+	memcpy(trama + 6, s_MAC, 6);
+	memcpy(trama + 12, ethertype_ARP, 2);
+	memcpy(trama + 14, HW, 2);
+	memcpy(trama + 16, PR, 2);
+	memcpy(trama + 18, LDH, 1);
+	memcpy(trama + 19, LDP, 1);
+	memcpy(trama + 20, epcode_ARP_request, 2);
+	memcpy(trama + 22, s_MAC, 6);
+	memcpy(trama + 28, s_IP, 4);
+	memcpy(trama + 32, d_MAC, 6);
+	memcpy(trama + 38, d_IP, 4);
 }
 
 void frame(unsigned char *trama)
 {
-	memcpy(trama+0, alameda_MAC_WLAN, 6);
-	memcpy(trama+6, my_MAC, 6);
-	memcpy(trama+12, ethertype_ethernet, 2);
-	memcpy(trama+14, "Quintanilla Network", 40);
+	memcpy(trama + 0, alameda_MAC_WLAN, 6);
+	memcpy(trama + 6, my_MAC, 6);
+	memcpy(trama + 12, ethertype_ethernet, 2);
+	memcpy(trama + 14, "Quintanilla Network", 40);
 }
 
 void sendFrame(int sd, int index, unsigned char *frame, int frame_size)
 {
-	int size;   
+	int size;
 	struct sockaddr_ll interface;
-	
+
 	memset(&interface, 0x00, sizeof(interface));
 	interface.sll_family = AF_PACKET;
 	interface.sll_protocol = htons(ETH_P_ALL);
 	interface.sll_ifindex = index;
-	
+
 	size = sendto(sd, frame, frame_size, 0, (struct sockaddr *)&interface, sizeof(interface));
-	
-	if(size == -1)
+
+	if (size == -1)
 	{
 		perror("Error al enviar");
-		exit(1);   
+		exit(1);
 	}
 	else
 	{
-		//printf("Exito al enviar\n");  
+		//printf("Exito al enviar\n");
 	}
 }
 
 void printFrame(unsigned char *frame, int size)
 {
-    int i = 0;
-    printf(" %.2X\t", 16*i);
+	int i = 0;
+	printf(" %.2X\t", 16 * i);
 
-    for (int j = 0; j < size-1; j++)
-    {
-        if (j % 16 == 0 && j != 0)
-        {
-            printf("\n");
-            i++;
-            printf(" %.2X\t", 16*i);
-        }
-        if (j % 8 == 0)
-            printf(" ");
-        printf("%.2X ", frame[j]);
-    }
-    printf("\n");
+	for (int j = 0; j < size - 1; j++)
+	{
+		if (j % 16 == 0 && j != 0)
+		{
+			printf("\n");
+			i++;
+			printf(" %.2X\t", 16 * i);
+		}
+		if (j % 8 == 0)
+			printf(" ");
+		printf("%.2X ", frame[j]);
+	}
+	printf("\n");
 }
 
 void printARPinfo(unsigned char *frame, int size)
 {
 	int i;
-	
-	if(!memcmp(frame+20, epcode_ARP_request, 2))
-		printf("Solicitud ARP\n");
-	else if(!memcmp(frame+20, epcode_ARP_replay, 2))
-		printf("Respuesta ARP\n\n");
-	
+
+	if (!memcmp(frame + 20, epcode_ARP_request, 2))
+		printf("\nSolicitud ARP\n");
+	else if (!memcmp(frame + 20, epcode_ARP_replay, 2))
+		printf("\nRespuesta ARP\n");
+
 	printf("+---------------------------------------+\n");
 
 	printf("Direccion MAC Origen: ");
 
-	for( i = 22 ; i < 28 ; i++ )
+	for (i = 22; i < 28; i++)
 	{
-		if(i == 27)
+		if (i == 27)
 			printf("%.2X\n", frame[i]);
 		else
 			printf("%.2X:", frame[i]);
@@ -221,19 +223,19 @@ void printARPinfo(unsigned char *frame, int size)
 
 	printf("Direccion IP Origen: ");
 
-	for( i = 28 ; i < 32 ; i++ )
+	for (i = 28; i < 32; i++)
 	{
-		if( i == 31 )
+		if (i == 31)
 			printf("%d\n", frame[i]);
-		else 
+		else
 			printf("%d.", frame[i]);
 	}
 
 	printf("Direccion MAC Destino: ");
 
-	for( i = 32 ; i < 38 ; i++ )
+	for (i = 32; i < 38; i++)
 	{
-		if(i == 37)
+		if (i == 37)
 			printf("%.2X\n", frame[i]);
 		else
 			printf("%.2X:", frame[i]);
@@ -241,11 +243,11 @@ void printARPinfo(unsigned char *frame, int size)
 
 	printf("Direccion IP Destino: ");
 
-	for( i = 38 ; i < 42 ; i++ )
+	for (i = 38; i < 42; i++)
 	{
-		if( i == 41 )
+		if (i == 41)
 			printf("%d\n", frame[i]);
-		else 
+		else
 			printf("%d.", frame[i]);
 	}
 
@@ -258,45 +260,44 @@ void receiveFrame(int sd, unsigned char *frame)
 
 	gettimeofday(&start, NULL);
 	mtime = 0;
-    
-    while(mtime < 200){
-		
+
+	while (mtime < 200)
+	{
+
 		size = recvfrom(sd, frame, 1514, MSG_DONTWAIT, NULL, 0);
 
-		if( size == -1 )
+		if (size == -1)
 		{
 			//perror("Error al recibir");
 		}
 		else
 		{
-			if( !memcmp(frame+0, my_MAC, 6) && !memcmp(frame+12, ethertype_ARP, 2) && !memcmp(frame+20, epcode_ARP_replay, 2) && !memcmp(frame+28, dest_IP, 4) )
+			if (!memcmp(frame + 0, my_MAC, 6) && !memcmp(frame + 12, ethertype_ARP, 2) && !memcmp(frame + 20, epcode_ARP_replay, 2) && !memcmp(frame + 28, dest_IP, 4))
 			{
 				//printFrame(frame, size);
 				flag = 1;
 			}
-	
 		}
-	
+
 		gettimeofday(&end, NULL);
 
-		seconds  = end.tv_sec  - start.tv_sec;
+		seconds = end.tv_sec - start.tv_sec;
 		useconds = end.tv_usec - start.tv_usec;
 
-		mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
-		
-		if( flag == 1 )
+		mtime = ((seconds)*1000 + useconds / 1000.0) + 0.5;
+
+		if (flag == 1)
 		{
 			//printf("\nElapsed time: %ld milliseconds\n", mtime);
 			break;
 		}
-
 	}
 
-	if( flag == 0 ){
+	if (flag == 0)
+	{
 		//perror("Error al recibir");
 		//printf("Elapsed time: %ld milliseconds\n", mtime);
 	}
-
 }
 
 void stringToIP(char *ip_s)
@@ -308,12 +309,12 @@ char *IPToString(unsigned char *ip)
 {
 	char *ip_s = malloc(14);
 	char aux[14];
-	
+
 	strcpy(ip_s, "");
 
-	for( int i = 0 ; i < 4 ; i++ )
+	for (int i = 0; i < 4; i++)
 	{
-		if( i == 3 )
+		if (i == 3)
 			sprintf(aux, "%d", ip[i]);
 		else
 			sprintf(aux, "%d.", ip[i]);
@@ -326,34 +327,195 @@ char *IPToString(unsigned char *ip)
 
 void gratARPreply(unsigned char *frame, unsigned char *s_MAC, unsigned char *d_MAC, unsigned char *d_IP)
 {
-	memcpy(frame+0, s_MAC, 6);
-	memcpy(frame+6, d_MAC, 6);
-	memcpy(frame+12, ethertype_ARP, 2);
-	memcpy(frame+14, HW, 2);
-	memcpy(frame+16, PR, 2);
-	memcpy(frame+18, LDH, 1);
-	memcpy(frame+19, LDP, 1);
-	memcpy(frame+20, epcode_ARP_replay, 2);
+	memcpy(frame + 0, s_MAC, 6);
+	memcpy(frame + 6, d_MAC, 6);
+	memcpy(frame + 12, ethertype_ARP, 2);
+	memcpy(frame + 14, HW, 2);
+	memcpy(frame + 16, PR, 2);
+	memcpy(frame + 18, LDH, 1);
+	memcpy(frame + 19, LDP, 1);
+	memcpy(frame + 20, epcode_ARP_replay, 2);
 
-	memcpy(frame+22, d_MAC, 6);
-	memcpy(frame+28, d_IP, 4);
-	memcpy(frame+32, s_MAC, 6);
-	memcpy(frame+38, d_IP, 4);
+	memcpy(frame + 22, d_MAC, 6);
+	memcpy(frame + 28, d_IP, 4);
+	memcpy(frame + 32, s_MAC, 6);
+	memcpy(frame + 38, d_IP, 4);
 }
 
 void gratARPrequest(unsigned char *frame, unsigned char *d_MAC, unsigned char *d_IP)
 {
-	memcpy(frame+0, bro_MAC, 6);
-	memcpy(frame+6, d_MAC, 6);
-	memcpy(frame+12, ethertype_ARP, 2);
-	memcpy(frame+14, HW, 2);
-	memcpy(frame+16, PR, 2);
-	memcpy(frame+18, LDH, 1);
-	memcpy(frame+19, LDP, 1);
-	memcpy(frame+20, epcode_ARP_request, 2);
+	memcpy(frame + 0, bro_MAC, 6);
+	memcpy(frame + 6, d_MAC, 6);
+	memcpy(frame + 12, ethertype_ARP, 2);
+	memcpy(frame + 14, HW, 2);
+	memcpy(frame + 16, PR, 2);
+	memcpy(frame + 18, LDH, 1);
+	memcpy(frame + 19, LDP, 1);
+	memcpy(frame + 20, epcode_ARP_request, 2);
 
-	memcpy(frame+22, d_MAC, 6);
-	memcpy(frame+28, d_IP, 4);
-	memcpy(frame+32, clear_MAC, 6);
-	memcpy(frame+38, d_IP, 4);
+	memcpy(frame + 22, d_MAC, 6);
+	memcpy(frame + 28, d_IP, 4);
+	memcpy(frame + 32, clear_MAC, 6);
+	memcpy(frame + 38, d_IP, 4);
+}
+
+int isLocalIP(unsigned char *d_IP)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (NETMASK[i] == 0)
+			break;
+		if (my_IP[i] != d_IP[i])
+			return 0;
+	}
+	return 1;
+}
+
+int getGatewayIP(unsigned char *gateway_IP)
+{
+	int received_bytes = 0, msg_len = 0, route_attribute_len = 0;
+	int sock = -1, msgseq = 0;
+	struct nlmsghdr *nlh, *nlmsg;
+	struct rtmsg *route_entry;
+	struct rtattr *route_attribute;
+	char gateway_address[INET_ADDRSTRLEN], interface[IF_NAMESIZE];
+	char msgbuf[BUFFER_SIZE], buffer[BUFFER_SIZE];
+	char *ptr = buffer;
+	struct timeval tv;
+
+	if ((sock = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE)) < 0)
+	{
+		perror("socket failed");
+		return EXIT_FAILURE;
+	}
+
+	memset(msgbuf, 0, sizeof(msgbuf));
+	memset(gateway_address, 0, sizeof(gateway_address));
+	memset(interface, 0, sizeof(interface));
+	memset(buffer, 0, sizeof(buffer));
+	nlmsg = (struct nlmsghdr *)msgbuf;
+	nlmsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
+	nlmsg->nlmsg_type = RTM_GETROUTE;				 // Get the routes from kernel routing table .
+	nlmsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST; // The message is a request for dump.
+	nlmsg->nlmsg_seq = msgseq++;					 // Sequence of the message packet.
+	nlmsg->nlmsg_pid = getpid();					 // PID of process sending the request.
+	tv.tv_sec = 1;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *)&tv, sizeof(struct timeval));
+	/* send msg */
+	if (send(sock, nlmsg, nlmsg->nlmsg_len, 0) < 0)
+	{
+		perror("send failed");
+		return EXIT_FAILURE;
+	}
+
+	do
+	{
+		received_bytes = recv(sock, ptr, sizeof(buffer) - msg_len, 0);
+
+		if (received_bytes < 0)
+		{
+			perror("Error in recv");
+			return EXIT_FAILURE;
+		}
+
+		nlh = (struct nlmsghdr *)ptr;
+		if ((NLMSG_OK(nlmsg, received_bytes) == 0) || (nlmsg->nlmsg_type == NLMSG_ERROR))
+		{
+			perror("Error in received packet");
+			return EXIT_FAILURE;
+		}
+
+		if (nlh->nlmsg_type == NLMSG_DONE)
+			break;
+		else
+		{
+			ptr += received_bytes;
+			msg_len += received_bytes;
+		}
+
+		if ((nlmsg->nlmsg_flags & NLM_F_MULTI) == 0)
+			break;
+	} while ((nlmsg->nlmsg_seq != msgseq) || (nlmsg->nlmsg_pid != getpid()));
+
+	for (; NLMSG_OK(nlh, received_bytes); nlh = NLMSG_NEXT(nlh, received_bytes))
+	{
+		route_entry = (struct rtmsg *)NLMSG_DATA(nlh);
+		if (route_entry->rtm_table != RT_TABLE_MAIN)
+			continue;
+
+		route_attribute = (struct rtattr *)RTM_RTA(route_entry);
+		route_attribute_len = RTM_PAYLOAD(nlh);
+
+		for (; RTA_OK(route_attribute, route_attribute_len);
+			 route_attribute = RTA_NEXT(route_attribute, route_attribute_len))
+		{
+			switch (route_attribute->rta_type)
+			{
+			case RTA_OIF:
+				if_indextoname(*(int *)RTA_DATA(route_attribute), interface);
+				break;
+			case RTA_GATEWAY:
+				inet_ntop(AF_INET, RTA_DATA(route_attribute), gateway_address, sizeof(gateway_address));
+				break;
+			default:
+				break;
+			}
+		}
+
+		if ((*gateway_address) && (*interface))
+		{
+			stringToIP(gateway_address);
+			memcpy(gateway_IP, IP, 4);
+			break;
+		}
+	}
+
+	close(sock);
+	return 0;
+}
+
+void receiveARPFrame(int sd, unsigned char *frame)
+{
+	int size, flag = 0;
+
+	gettimeofday(&start, NULL);
+	mtime = 0;
+
+	while (mtime < 200)
+	{
+
+		size = recvfrom(sd, frame, 1514, MSG_DONTWAIT, NULL, 0);
+
+		if (size == -1)
+		{
+			//perror("Error al recibir");
+		}
+		else
+		{
+			if (!memcmp(frame + 0, my_MAC, 6) && !memcmp(frame + 12, ethertype_ARP, 2) && !memcmp(frame + 20, epcode_ARP_replay, 2) && !memcmp(frame + 28, dest_IP, 4))
+			{
+				//printARPinfo(frame, size);
+				flag = 1;
+			}
+		}
+
+		gettimeofday(&end, NULL);
+
+		seconds = end.tv_sec - start.tv_sec;
+		useconds = end.tv_usec - start.tv_usec;
+
+		mtime = ((seconds)*1000 + useconds / 1000.0) + 0.5;
+
+		if (flag == 1)
+		{
+			//printf("\nElapsed time: %ld milliseconds\n", mtime);
+			break;
+		}
+	}
+
+	if (flag == 0)
+	{
+		//perror("Error al recibir");
+		//printf("Elapsed time: %ld milliseconds\n", mtime);
+	}
 }
