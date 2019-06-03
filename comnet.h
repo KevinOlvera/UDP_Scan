@@ -45,7 +45,7 @@ unsigned char clear_IP[4] = {0x00, 0x00, 0x00, 0x00};
 unsigned char frame_s[1514], frame_r[1514];
 unsigned char bro_MAC[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 unsigned char ethertype_ARP[2] = {0x08, 0x06};
-unsigned char ethertype_ethernet[2] = {0x0c, 0x0c};
+unsigned char ethertype_ip[2] = {0x08, 0x00};
 unsigned char HW[2] = {0x00, 0x01};
 unsigned char PR[2] = {0x08, 0x00};
 unsigned char LDH[1] = {0x06};
@@ -56,12 +56,16 @@ unsigned char epcode_ARP_replay[2] = {0x00, 0x02};
 unsigned char alameda_MAC_LAN[6] = {0x00, 0x8c, 0xfa, 0x7c, 0xc0, 0xdf};
 unsigned char alameda_MAC_WLAN[6] = {0xa4, 0xdb, 0x30, 0x7b, 0xaf, 0x77};
 
+unsigned char dest_port[2] = {0x00, 0x00};
+unsigned char H_UDP[111];
+unsigned char H_IP[111];
+
 struct timeval start, end;
 long mtime, seconds, useconds;
 
 int getData(int sd);
-void ARPframe(unsigned char *trama, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP);
-void frame(unsigned char *trama);
+void ARPframe(unsigned char *frame, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP);
+void frame(unsigned char *frame);
 void sendFrame(int sd, int index, unsigned char *frame, int frame_size);
 void printFrame(unsigned char *frame, int size);
 void printARPinfo(unsigned char *frame, int size);
@@ -75,5 +79,9 @@ void gratARPrequest(unsigned char *frame, unsigned char *d_MAC, unsigned char *d
 int isLocalIP(unsigned char *d_IP);
 int getGatewayIP(unsigned char *gateway_IP);
 void receiveARPFrame(int sd, unsigned char *frame);
+void UDP_Scan(int sd);
+void UDPframe(unsigned char *frame, int i);
+unsigned short checksum(unsigned char *buff, int bufflen);
 
 #define BUFFER_SIZE 4096
+#define MAX_PORTS 49151

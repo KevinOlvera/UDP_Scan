@@ -133,28 +133,28 @@ int getData(int sd)
 	return index;
 }
 
-void ARPframe(unsigned char *trama, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP)
+void ARPframe(unsigned char *frame, unsigned char *s_MAC, unsigned char *s_IP, unsigned char *d_MAC, unsigned char *d_IP)
 {
-	memcpy(trama + 0, bro_MAC, 6);
-	memcpy(trama + 6, s_MAC, 6);
-	memcpy(trama + 12, ethertype_ARP, 2);
-	memcpy(trama + 14, HW, 2);
-	memcpy(trama + 16, PR, 2);
-	memcpy(trama + 18, LDH, 1);
-	memcpy(trama + 19, LDP, 1);
-	memcpy(trama + 20, epcode_ARP_request, 2);
-	memcpy(trama + 22, s_MAC, 6);
-	memcpy(trama + 28, s_IP, 4);
-	memcpy(trama + 32, d_MAC, 6);
-	memcpy(trama + 38, d_IP, 4);
+	memcpy(frame + 0, bro_MAC, 6);
+	memcpy(frame + 6, s_MAC, 6);
+	memcpy(frame + 12, ethertype_ARP, 2);
+	memcpy(frame + 14, HW, 2);
+	memcpy(frame + 16, PR, 2);
+	memcpy(frame + 18, LDH, 1);
+	memcpy(frame + 19, LDP, 1);
+	memcpy(frame + 20, epcode_ARP_request, 2);
+	memcpy(frame + 22, s_MAC, 6);
+	memcpy(frame + 28, s_IP, 4);
+	memcpy(frame + 32, d_MAC, 6);
+	memcpy(frame + 38, d_IP, 4);
 }
 
-void frame(unsigned char *trama)
+void frame(unsigned char *frame)
 {
-	memcpy(trama + 0, alameda_MAC_WLAN, 6);
-	memcpy(trama + 6, my_MAC, 6);
-	memcpy(trama + 12, ethertype_ethernet, 2);
-	memcpy(trama + 14, "Quintanilla Network", 40);
+	memcpy(frame + 0, alameda_MAC_WLAN, 6);
+	memcpy(frame + 6, my_MAC, 6);
+	memcpy(frame + 12, ethertype_ip, 2);
+	memcpy(frame + 14, "Quintanilla Network", 40);
 }
 
 void sendFrame(int sd, int index, unsigned char *frame, int frame_size)
@@ -495,6 +495,7 @@ void receiveARPFrame(int sd, unsigned char *frame)
 			if (!memcmp(frame + 0, my_MAC, 6) && !memcmp(frame + 12, ethertype_ARP, 2) && !memcmp(frame + 20, epcode_ARP_replay, 2) && !memcmp(frame + 28, dest_IP, 4))
 			{
 				//printARPinfo(frame, size);
+				memcpy(dest_MAC, frame+22, 6);
 				flag = 1;
 			}
 		}
@@ -518,4 +519,114 @@ void receiveARPFrame(int sd, unsigned char *frame)
 		//perror("Error al recibir");
 		//printf("Elapsed time: %ld milliseconds\n", mtime);
 	}
+}
+
+void UDP_Scan(int sd)
+{
+	for(int i = 0; i < 1 ; i++)
+		UDPframe(frame_s, i);
+	
+}
+void UDPframe(unsigned char *frame, int i)
+{
+	unsigned short chcksum;
+
+	//MAC Header (14 bytes)
+	memcpy(frame + 0, dest_MAC, 6);
+	memcpy(frame + 6, source_MAC, 6);
+	memcpy(frame + 12, ethertype_ip, 2);
+
+	//IP Header (20 bytes)
+	//4 bits - Version
+				//0100 para la version ipv4
+	//4 bits - Long enc ip
+				// de 5 a 15                se multiplica la version y este para saber la longitud en bytes desde version al relleno
+	//1 - Tipo de servicio regularmente 0x00
+	//2 - Long datagrama ip
+	//2 - id 								el emisor lo define (puede ser el pid)
+	//3 bits - banderas
+						//0
+						//1 dont fragment
+						//0 more fragments
+	//13 bits - desplazamiento de fragmento
+						//0 0000 0000 0000
+	//1 - tiempo de vidda
+						//0x80(128)
+	//1 - protocolo (UDP == 0x11) (TCP == 0x06) (ICMP == 0x01)
+	//2 - checksum calcular con este campo en cero primero
+	//4 - ip origen
+	//4 - ip destino
+
+
+	memcpy(frame + 14, "\x45", 1);
+	memcpy(frame + 15, "\x00", 1);
+	memcpy(frame + 16, "\x00\x60", 2); // longitud con todo y udp en bytes
+	memcpy(frame + 18, "\x00\x00", 2);
+	memcpy(frame + 20, "\x40\x00", 2);
+	memcpy(frame + 22, "\x80", 1);
+	memcpy(frame + 23, "\x11", 1);
+	memcpy(frame + 24, "\x00\x00", 2);
+	memcpy(frame + 26, source_IP, 4);
+	memcpy(frame + 30, IP, 4);
+
+	memcpy(H_IP + 0, frame + 14, 20);
+
+	chcksum = checksum(H_IP, (int)sizeof(H_IP));
+	chcksum = htons(chcksum);
+
+	memcpy(frame + 24, (char *)&chcksum, 2);
+
+	//UDP Header (8 bytes)
+	//2 - Puerto origen		0x00 0x00
+	//2 - Puerto Destino	0x00 0x00, .... ...., 0xff 0xff
+	//2 - Longitud			1458 longitud del mensaje
+	//2 - Checksum			Pseudo encabezado + enc udp + mensaje + relleno ( 12 + 8 + ... + 1 ) bytes
+							//Pseudoencabezado ip origen + ip destino + 0x00 + 0x11(17) + longitud udp
+	
+	memcpy(frame + 34, "\x00\x00", 2);
+	memcpy(dest_port, (unsigned char *)&i, 2);
+	memcpy(frame + 36, dest_port, 2);
+	memcpy(frame + 38, "\x00\x44", 2);
+	memcpy(frame + 40, "\x00\x00", 2);
+	
+	//UDP Message
+	memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
+
+	//Pseudo UDP Header + UDP Header + Message
+	memcpy(H_UDP + 0, source_IP, 4);
+	memcpy(H_UDP + 4, IP, 4);
+	memcpy(H_UDP + 8, "\x00", 1);
+	memcpy(H_UDP + 9, "\x11", 1);
+	memcpy(H_UDP + 10, "\x4c", 1);
+	memcpy(H_UDP + 11, frame + 34, 76);
+	memcpy(H_UDP + 110, "\x00", 1);
+
+	chcksum = checksum(H_UDP, (int)sizeof(H_UDP));
+	chcksum = htons(chcksum);
+
+    memcpy(frame + 40, (char *)&chcksum, 2);
+
+	printf("%.2x %.2x", frame[40], frame[41]);
+
+}
+
+unsigned short checksum(unsigned char *buff, int bufflen)
+{
+    unsigned short cksum = 0;
+    unsigned short carry = 0;
+    int i, addition = 0, result = 0, temp = 0;
+    
+    for (i = 0; i < bufflen; i = i + 2)
+    {
+        temp = (buff[i] << 8) + buff[i + 1];
+        addition = addition + temp;
+        temp = 0;
+    }
+
+    carry = addition >> 16;
+    result = (addition & 0x0000FFFF) + carry;
+    carry = result >> 16;
+    result = (result & 0x0000FFFF) + carry;
+    cksum = 0xffff - result;
+    return cksum;
 }
