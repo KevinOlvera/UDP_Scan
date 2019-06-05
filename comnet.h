@@ -82,6 +82,7 @@ void receiveARPFrame(int sd, unsigned char *frame);
 void UDP_Scan(int sd, int index);
 void UDPframe(unsigned char *frame, unsigned int port);
 unsigned short checksum(unsigned char *buff, int bufflen);
+int UDPPortIsOpen(int sd, unsigned char *frame, unsigned int port);
 
 #define BUFFER_SIZE 4096
-#define MAX_PORTS 49151
+#define MAX_PORTS 1000

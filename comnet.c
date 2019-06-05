@@ -523,13 +523,31 @@ void receiveARPFrame(int sd, unsigned char *frame)
 
 void UDP_Scan(int sd, int index)
 {
-	for(int i = 0; i <= 100 ; i++)
+	int state_port = 0;
+	int count = 0;
+
+	printf(" Escaneando ...\n");
+
+	for(int i = 1; i <= MAX_PORTS ; i++)
 	{
 		UDPframe(frame_s, htons(i));
 		//printFrame(frame_s, 111);
-		sendFrame(sd, index, frame_s, 110);
-		
+
+		for(int j = 0; j < 3; j++)
+		{
+			sendFrame(sd, index, frame_s, 110);
+			state_port = UDPPortIsOpen(sd, frame_r, htons(i));
+			if(state_port == 0)
+				break;
+		}
+
+		if(state_port == 1)
+		{
+			printf(" %i\tAbierto | Filtrado\n", i);
+			count++;
+		}
 	}
+	printf(" %i puertos cerrados\n", (MAX_PORTS - count));
 }
 void UDPframe(unsigned char *frame, unsigned int port)
 {
@@ -565,8 +583,8 @@ void UDPframe(unsigned char *frame, unsigned int port)
 	memcpy(frame + 15, "\x00", 1);
 	memcpy(frame + 16, "\x00\x60", 2); // longitud con todo y udp en bytes
 	memcpy(frame + 18, "\x00\x00", 2);
-	memcpy(frame + 20, "\x40\x00", 2);
-	memcpy(frame + 22, "\x80", 1);
+	memcpy(frame + 20, "\x00\x00", 2);
+	memcpy(frame + 22, "\x40", 1);
 	memcpy(frame + 23, "\x11", 1);
 	memcpy(frame + 24, "\x00\x00", 2);
 	memcpy(frame + 26, my_IP, 4);
@@ -586,24 +604,24 @@ void UDPframe(unsigned char *frame, unsigned int port)
 	//2 - Checksum			Pseudo encabezado + enc udp + mensaje + relleno ( 12 + 8 + ... + 1 ) bytes
 							//Pseudoencabezado ip origen + ip destino + 0x00 + 0x11(17) + longitud udp
 	
-	memcpy(frame + 34, "\x00\x00", 2);
+	memcpy(frame + 34, "\xea\x60", 2);
 	memcpy(frame + 36, (unsigned char *)&port, 2);
-	memcpy(frame + 38, "\x00\x44", 2);
+	memcpy(frame + 38, "\x00\x4c", 2);
 	memcpy(frame + 40, "\x00\x00", 2);
 	
 	//UDP Message
-	memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
+	//memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
 
 	//Pseudo UDP Header + UDP Header + Message
 	memcpy(H_UDP + 0, my_IP, 4);
 	memcpy(H_UDP + 4, IP, 4);
 	memcpy(H_UDP + 8, "\x00", 1);
 	memcpy(H_UDP + 9, "\x11", 1);
-	memcpy(H_UDP + 10, "\x4c", 1);
+	memcpy(H_UDP + 10, "\x00\x4c", 2);
 
-	memcpy(H_UDP + 11, frame + 34, 76);
+	memcpy(H_UDP + 12, frame + 34, 76);
 
-	memcpy(H_UDP + 89, "\x00", 1);
+	memcpy(H_UDP + 90, "\x00", 1);
 
 	chcksum = checksum(H_UDP, (int)sizeof(H_UDP));
 	chcksum = htons(chcksum);
@@ -630,4 +648,53 @@ unsigned short checksum(unsigned char *buff, int bufflen)
     result = (result & 0x0000FFFF) + carry;
     cksum = 0xffff - result;
     return cksum;
+}
+
+int UDPPortIsOpen(int sd, unsigned char *frame, unsigned int port)
+{
+	int size, flag = 0;
+
+	gettimeofday(&start, NULL);
+	mtime = 0;
+
+	while (mtime < 50)
+	{
+
+		size = recvfrom(sd, frame, 1514, MSG_DONTWAIT, NULL, 0);
+
+		if (size == -1)
+		{
+			//perror("Error al recibir");
+		}
+		else
+		{
+			if (!memcmp(frame + 0, my_MAC, 6) && !memcmp(frame + 6, dest_MAC, 6) && !memcmp(frame + 12, ethertype_ip, 2) && !memcmp(frame + 23, "\x01", 1) && !memcmp(frame + 26, dest_IP, 4) && !memcmp(frame + 34, "\x03", 1) && !memcmp(frame + 51, "\x11", 1) && !memcmp(frame + 64, (unsigned char *)&port, 2))
+			{
+				//printARPinfo(frame, size);
+				flag = 1;
+				return 0;
+			}
+		}
+
+		gettimeofday(&end, NULL);
+
+		seconds = end.tv_sec - start.tv_sec;
+		useconds = end.tv_usec - start.tv_usec;
+
+		mtime = ((seconds)*1000 + useconds / 1000.0) + 0.5;
+
+		if (flag == 1)
+		{
+			//printf("\nElapsed time: %ld milliseconds\n", mtime);
+			break;
+		}
+	}
+
+	if (flag == 0)
+	{
+		//perror("Error al recibir");
+		//printf("Elapsed time: %ld milliseconds\n", mtime);
+	}
+
+	return 1;
 }
