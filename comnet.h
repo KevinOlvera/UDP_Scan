@@ -85,4 +85,4 @@ unsigned short checksum(unsigned char *buff, int bufflen);
 int UDPPortIsOpen(int sd, unsigned char *frame, unsigned int port);
 
 #define BUFFER_SIZE 4096
-#define MAX_PORTS 1000
+#define MAX_PORTS 100

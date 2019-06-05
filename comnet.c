@@ -610,7 +610,7 @@ void UDPframe(unsigned char *frame, unsigned int port)
 	memcpy(frame + 40, "\x00\x00", 2);
 	
 	//UDP Message
-	//memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
+	memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
 
 	//Pseudo UDP Header + UDP Header + Message
 	memcpy(H_UDP + 0, my_IP, 4);
