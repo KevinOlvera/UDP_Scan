@@ -521,19 +521,23 @@ void receiveARPFrame(int sd, unsigned char *frame)
 	}
 }
 
-void UDP_Scan(int sd)
+void UDP_Scan(int sd, int index)
 {
-	for(int i = 0; i < 1 ; i++)
-		UDPframe(frame_s, i);
-	
+	for(int i = 0; i <= 100 ; i++)
+	{
+		UDPframe(frame_s, htons(i));
+		//printFrame(frame_s, 111);
+		sendFrame(sd, index, frame_s, 110);
+		
+	}
 }
-void UDPframe(unsigned char *frame, int i)
+void UDPframe(unsigned char *frame, unsigned int port)
 {
 	unsigned short chcksum;
 
 	//MAC Header (14 bytes)
 	memcpy(frame + 0, dest_MAC, 6);
-	memcpy(frame + 6, source_MAC, 6);
+	memcpy(frame + 6, my_MAC, 6);
 	memcpy(frame + 12, ethertype_ip, 2);
 
 	//IP Header (20 bytes)
@@ -557,7 +561,6 @@ void UDPframe(unsigned char *frame, int i)
 	//4 - ip origen
 	//4 - ip destino
 
-
 	memcpy(frame + 14, "\x45", 1);
 	memcpy(frame + 15, "\x00", 1);
 	memcpy(frame + 16, "\x00\x60", 2); // longitud con todo y udp en bytes
@@ -566,7 +569,7 @@ void UDPframe(unsigned char *frame, int i)
 	memcpy(frame + 22, "\x80", 1);
 	memcpy(frame + 23, "\x11", 1);
 	memcpy(frame + 24, "\x00\x00", 2);
-	memcpy(frame + 26, source_IP, 4);
+	memcpy(frame + 26, my_IP, 4);
 	memcpy(frame + 30, IP, 4);
 
 	memcpy(H_IP + 0, frame + 14, 20);
@@ -584,8 +587,7 @@ void UDPframe(unsigned char *frame, int i)
 							//Pseudoencabezado ip origen + ip destino + 0x00 + 0x11(17) + longitud udp
 	
 	memcpy(frame + 34, "\x00\x00", 2);
-	memcpy(dest_port, (unsigned char *)&i, 2);
-	memcpy(frame + 36, dest_port, 2);
+	memcpy(frame + 36, (unsigned char *)&port, 2);
 	memcpy(frame + 38, "\x00\x44", 2);
 	memcpy(frame + 40, "\x00\x00", 2);
 	
@@ -593,21 +595,20 @@ void UDPframe(unsigned char *frame, int i)
 	memcpy(frame + 42, "Kevin Jesus Olvera Olvera - kevin.jesus.olvera@gmail.com - IPN/ESCOM", 68);
 
 	//Pseudo UDP Header + UDP Header + Message
-	memcpy(H_UDP + 0, source_IP, 4);
+	memcpy(H_UDP + 0, my_IP, 4);
 	memcpy(H_UDP + 4, IP, 4);
 	memcpy(H_UDP + 8, "\x00", 1);
 	memcpy(H_UDP + 9, "\x11", 1);
 	memcpy(H_UDP + 10, "\x4c", 1);
+
 	memcpy(H_UDP + 11, frame + 34, 76);
-	memcpy(H_UDP + 110, "\x00", 1);
+
+	memcpy(H_UDP + 89, "\x00", 1);
 
 	chcksum = checksum(H_UDP, (int)sizeof(H_UDP));
 	chcksum = htons(chcksum);
 
     memcpy(frame + 40, (char *)&chcksum, 2);
-
-	printf("%.2x %.2x", frame[40], frame[41]);
-
 }
 
 unsigned short checksum(unsigned char *buff, int bufflen)

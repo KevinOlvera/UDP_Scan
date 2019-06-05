@@ -28,14 +28,21 @@ int main(int argc, char const *argv[])
             printf("\n Gateway:\t%s\n", IPToString(dest_IP));
         }
 
-        ARPframe(frame_s, my_MAC, my_IP, dest_MAC, dest_IP);
-        //printFrame(frame_s, 43);
-        sendFrame(packet_socket, index, frame_s, 42);
-        receiveARPFrame(packet_socket, frame_r);
+        if(memcmp(dest_IP, my_IP, 4))
+        {
+            ARPframe(frame_s, my_MAC, my_IP, dest_MAC, dest_IP);
+            //printFrame(frame_s, 43);
+            sendFrame(packet_socket, index, frame_s, 42);
+            receiveARPFrame(packet_socket, frame_r);
+        }
+        else
+        {
+            memcpy(dest_MAC, my_MAC, 6);
+        }
 
         inet_pton(AF_INET, ip_scan, IP);
 
-        UDP_Scan(packet_socket);
+        UDP_Scan(packet_socket, index);
     }
 
     close(packet_socket);

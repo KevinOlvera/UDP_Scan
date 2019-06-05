@@ -79,8 +79,8 @@ void gratARPrequest(unsigned char *frame, unsigned char *d_MAC, unsigned char *d
 int isLocalIP(unsigned char *d_IP);
 int getGatewayIP(unsigned char *gateway_IP);
 void receiveARPFrame(int sd, unsigned char *frame);
-void UDP_Scan(int sd);
-void UDPframe(unsigned char *frame, int i);
+void UDP_Scan(int sd, int index);
+void UDPframe(unsigned char *frame, unsigned int port);
 unsigned short checksum(unsigned char *buff, int bufflen);
 
 #define BUFFER_SIZE 4096
